@@ -1,0 +1,253 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLOv5 Video Object Detection</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+            background-color: #f8f9fa;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .upload-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+        .result-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+        .video-preview {
+            width: 100%;
+            max-height: 400px;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 5px solid #3498db;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto;
+        }
+        .progress-container {
+            margin-top: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>YOLOv5 Video Object Detection</h1>
+            <p class="lead">Upload a video to detect objects using your custom trained YOLOv5 model</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mx-auto">
+                <div class="upload-container">
+                    <h3>Upload Video</h3>
+                    <form id="upload-form" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="video" class="form-label">Select Video File</label>
+                            <input class="form-control" type="file" id="video" name="video" accept="video/*" onchange="previewVideo()">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confidence" class="form-label">Confidence Threshold: <span id="conf-value">0.25</span></label>
+                            <input type="range" class="form-range" min="0.1" max="1.0" step="0.05" value="0.25" id="confidence" name="confidence" onchange="updateConfValue()">
+                        </div>
+                        <div class="mb-3">
+                            <video id="preview" class="video-preview d-none" controls></video>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Process Video</button>
+                    </form>
+                    <div id="loading" class="text-center mt-3 d-none">
+                        <div class="loader"></div>
+                        <p class="mt-2" id="processing-text">Uploading video...</p>
+                        <div class="progress-container">
+                            <div class="progress">
+                                <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <p class="text-center mt-1" id="progress-text">Initializing...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-10 mx-auto">
+                <div id="result-container" class="result-container">
+                    <h3>Detection Results</h3>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="ratio ratio-16x9">
+                                <video id="result-video" class="video-preview" controls></video>
+                            </div>
+                            <div class="d-grid gap-2 mt-3">
+                                <a id="download-btn" href="#" class="btn btn-success" download>Download Processed Video</a>
+                            </div>
+                            <div id="detection-info" class="mt-3">
+                                <p><strong>Processing Time:</strong> <span id="processing-time"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let videoId = null;
+        let statusCheckInterval = null;
+        
+        function previewVideo() {
+            const preview = document.getElementById('preview');
+            const file = document.getElementById('video').files[0];
+            
+            if (file) {
+                const videoUrl = URL.createObjectURL(file);
+                preview.src = videoUrl;
+                preview.classList.remove('d-none');
+            } else {
+                preview.src = '';
+                preview.classList.add('d-none');
+            }
+        }
+        
+        function updateConfValue() {
+            const value = document.getElementById('confidence').value;
+            document.getElementById('conf-value').textContent = value;
+        }
+        
+        function startStatusCheck() {
+            if (!videoId) return;
+            
+            statusCheckInterval = setInterval(() => {
+                fetch(`/video_status/${videoId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'complete') {
+                            clearInterval(statusCheckInterval);
+                            showResults(data.output_path, data.time_elapsed);
+                        } else {
+                            // Update progress UI (if needed)
+                            document.getElementById('processing-text').textContent = 'Processing video...';
+                            // In a real app, you'd have a way to show actual progress here
+                            const randomProgress = Math.floor(Math.random() * 30) + 50; // 50-80% as placeholder
+                            document.getElementById('progress-bar').style.width = `${randomProgress}%`;
+                            document.getElementById('progress-text').textContent = `Processing: approximately ${randomProgress}% complete`;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error checking status:', error);
+                    });
+            }, 2000); // Check every 2 seconds
+        }
+        
+        function showResults(outputPath, processingTime) {
+            // Hide loading indicator
+            document.getElementById('loading').classList.add('d-none');
+            
+            // Set video source with cache busting
+            const resultVideo = document.getElementById('result-video');
+            resultVideo.src = `${outputPath}?${new Date().getTime()}`;
+            
+            // Set download link
+            document.getElementById('download-btn').href = outputPath;
+            
+            // Set processing time
+            document.getElementById('processing-time').textContent = processingTime;
+            
+            // Show result container
+            document.getElementById('result-container').style.display = 'block';
+        }
+        
+        function processVideo(fileExtension) {
+            fetch(`/process_video/${videoId}?file_extension=${fileExtension}&conf_threshold=${document.getElementById('confidence').value}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('progress-bar').style.width = '50%';
+                        document.getElementById('progress-text').textContent = 'Video processing started...';
+                        startStatusCheck();
+                    } else {
+                        document.getElementById('loading').classList.add('d-none');
+                        alert('Error processing video: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('loading').classList.add('d-none');
+                    alert('Error: ' + error);
+                });
+        }
+        
+        document.getElementById('upload-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const loading = document.getElementById('loading');
+            const resultContainer = document.getElementById('result-container');
+            const file = document.getElementById('video').files[0];
+            
+            if (!file) {
+                alert('Please select a video file');
+                return;
+            }
+            
+            // Show loading indicator
+            loading.classList.remove('d-none');
+            resultContainer.style.display = 'none';
+            
+            // Reset progress
+            document.getElementById('progress-bar').style.width = '10%';
+            document.getElementById('progress-text').textContent = 'Uploading video...';
+            
+            fetch('/upload_video', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Store the video ID for status checking
+                    videoId = data.video_id;
+                    document.getElementById('progress-bar').style.width = '30%';
+                    document.getElementById('progress-text').textContent = 'Video uploaded, preparing processing...';
+                    
+                    // Start processing the video
+                    const fileExtension = file.name.split('.').pop();
+                    processVideo(`.${fileExtension}`);
+                } else {
+                    loading.classList.add('d-none');
+                    alert('Error: ' + data.error);
+                }
+            })
+            .catch(error => {
+                loading.classList.add('d-none');
+                alert('Error: ' + error);
+            });
+        });
+    </script>
+</body>
+</html>
+    
