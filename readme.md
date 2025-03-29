@@ -1,17 +1,54 @@
 # Urban Surveillance System using YOLO
 
 ## Overview
-This project focuses on object detection using the YOLOv5s model. The workflow includes data collection, model training, and integration with firmware for deployment.
+This project delivers a robust computer vision solution for smart city applications. The system detects zebra crossings, garbage bins, and traffic elements in urban scenes, even under challenging conditions such as motion blur, bad lighting, occlusions, or perspective shifts. It includes distortion correction, real-time performance, and automated alerts for seamless integration with smart city platforms.
+
+## Problem Statement
+The prototype addresses the following challenges:
+- Detecting zebra crossings, garbage bins, and traffic elements in urban scenes.
+- Handling distorted inputs caused by motion blur, low light, occlusions, or perspective shifts.
+- Correcting distortions and providing enhanced images.
+- Operating efficiently in real-time for smart city applications.
+
+### Input Types
+- **Images/Videos**: City surveillance feeds, CCTV footage, or street view images.
+- **Distorted Data**: Inputs may include motion-blurred, low-light, occluded, or perspective-shifted images.
+
+### Output
+- **Detection Results**: Bounding boxes and labels for zebra crossings, garbage bins, and traffic elements.
+- **Image Correction**: Enhanced images after distortion correction.
+- **Real-Time Alerts**: Notifications for smart city control centers.
 
 ## Features
-- **Data Collection and Preprocessing**: Merged datasets from multiple sources using Roboflow.
-- **Model Training**: Trained a YOLOv5s model for object detection tasks.
-- **Firmware Integration**: Integrated the trained model with firmware for real-world applications.
-- **Entity Detection**: Detects entities such as cars, bikes, people, garbage cans, zebra crossings, etc.
+- **Robust Object Detection**: Detects entities such as zebra crossings, garbage bins, cars, bikes, people, and other traffic elements.
+- **Distortion Correction**: Preprocessing pipeline to handle motion blur, low light, occlusions, and perspective shifts.
+- **Real-Time Performance**: Low latency suitable for smart city applications.
 - **Automated Alerts**:
   - Sends a call to traffic authorities if the number of vehicles is high.
   - Sends a call to the municipality if garbage is detected.
   - Sends a call to the police if the number of pedestrians is high or a mob is detected.
+- **Clear Visualization**: Annotated outputs with bounding boxes and labels.
+- **Firmware Integration**: Seamless deployment of the trained model in real-world environments.
+
+## Dataset Sources
+- **Kaggle**: Urban scene datasets and annotated images for object detection.
+- **Cityscapes**: High-quality urban scene segmentation and detection.
+- **COCO/Open Images**: Diverse object detection datasets.
+- **Berkeley DeepDrive**: Datasets focusing on street scenes and autonomous driving.
+
+## Prototype Highlights
+- **Real-Time Alerts**: The system generates actionable alerts for smart city control centers based on detection scenarios.
+- **Distortion Handling**: Preprocessing ensures accurate detection even with distorted inputs.
+- **Scalability**: Designed to handle increasing data volumes and adapt to new input types.
+- **Integration APIs**: Easy-to-integrate interfaces for smart city platforms.
+
+## Evaluation
+The prototype meets the following criteria:
+- **Accuracy**: High precision in detecting and classifying objects.
+- **Speed**: Real-time processing with minimal latency.
+- **Robustness**: Reliable performance under varying input conditions.
+- **Integration**: Seamless deployment with existing systems.
+- **User Experience**: Intuitive outputs and actionable insights.
 
 ## Project Workflow
 1. **Data Collection**:
@@ -22,7 +59,10 @@ This project focuses on object detection using the YOLOv5s model. The workflow i
    - Used the YOLOv5s architecture for training.
    - Fine-tuned the model for optimal performance on the collected dataset.
 
-3. **Integration**:
+3. **Distortion Correction**:
+   - Implemented preprocessing techniques to handle motion blur, low light, occlusions, and perspective shifts.
+
+4. **Integration**:
    - Deployed the trained model by integrating it with firmware for seamless operation.
 
 ## Requirements
@@ -62,9 +102,10 @@ This project focuses on object detection using the YOLOv5s model. The workflow i
    - Integrate the exported model with the firmware.
 
 ## Results
-- Achieved high accuracy in object detection tasks.
-- Successfully deployed the model in a firmware environment.
-- Automated alert system effectively notifies relevant authorities based on detection scenarios.
+- Successfully detected zebra crossings, garbage bins, and traffic elements in urban scenes.
+- Achieved high accuracy even with distorted inputs.
+- Real-time alerts effectively notify relevant authorities.
+- Distortion correction improves input quality for better detection results.
 
 ## Acknowledgments
 - [Roboflow](https://roboflow.com) for dataset management.
