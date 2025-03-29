@@ -1,5 +1,7 @@
 # Urban Surveillance System using YOLO
 
+## 🏆 This Project gave us **Second Prize** in **"Cummins IndovateAI Hackathon"** 🏆
+
 ## Overview
 This project delivers a robust computer vision solution for smart city applications. The system detects zebra crossings, garbage bins, and traffic elements in urban scenes, even under challenging conditions such as motion blur, bad lighting, occlusions, or perspective shifts. It includes distortion correction, real-time performance, and automated alerts for seamless integration with smart city platforms.
 
