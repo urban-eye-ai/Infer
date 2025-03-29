@@ -1,4 +1,4 @@
-Urban Surveillance System using YOLO
+# Urban Surveillance System using YOLO
 
 ## Overview
 This project focuses on object detection using the YOLOv5s model. The workflow includes data collection, model training, and integration with firmware for deployment.
